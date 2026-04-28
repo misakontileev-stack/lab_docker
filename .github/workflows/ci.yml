@@ -1,10 +1,6 @@
 name: CI
 
-on:
-  push:
-    branches: [ master, main ]
-  pull_request:
-    branches: [ master, main ]
+on: [push, pull_request]
 
 jobs:
   build:
@@ -12,12 +8,14 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+        with:
+          submodules: recursive
 
-      - name: Install system dependencies
-        run: sudo apt-get update && sudo apt-get install -y lcov libgtest-dev libgmock-dev
+      - name: Install dependencies
+        run: sudo apt-get update && sudo apt-get install -y cmake lcov gcovr libgtest-dev libgmock-dev
 
-      - name: Configure CMake with coverage flags
-        run: cmake -B _build -DBUILD_TESTS=ON -DCMAKE_CXX_FLAGS="--coverage -w"
+      - name: Configure CMake with coverage
+        run: cmake -B _build -DBUILD_TESTS=ON -DCMAKE_CXX_FLAGS="--coverage -O0 -g -w"
 
       - name: Build
         run: cmake --build _build
@@ -26,17 +24,21 @@ jobs:
         working-directory: _build
         run: ctest --verbose
 
-      - name: Collect coverage info
+      - name: Install gcovr (if not already)
+        run: sudo apt-get install -y gcovr
+
+      - name: Collect coverage with gcovr
         working-directory: _build
         run: |
-          lcov --capture --directory . --output-file coverage.info
-          lcov --remove coverage.info '/usr/*' '*/third-party/*' '*/tests/*' '*/mocks/*' --output-file coverage.info
-          lcov --list coverage.info   # посмотреть процент покрытия
+          gcovr -r .. --gcov-ignore-errors=no_working_dir_found \
+            --filter '.*banking/.*' \
+            --exclude '.*tests.*' \
+            --exclude '.*mocks.*' \
+            --exclude '.*print.hpp' \
+            --xml coverage.xml
 
       - name: Upload coverage to Coveralls
         uses: coverallsapp/github-action@v2
         with:
-          file: _build/coverage.info
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          flag-name: unit-tests
-          parallel: false
+          file: _build/coverage.xml
+          github-token: ${{ zXEE4h7x4nOKrgunhP3snjm140BLxsT7aoJb }}

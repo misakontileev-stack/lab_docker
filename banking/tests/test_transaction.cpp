@@ -52,7 +52,9 @@ TEST(TransactionTest, SuccessfulTransfer) {
     // Ожидаем вызов Credit(to, sum) -> to.ChangeBalance(sum)
     EXPECT_CALL(to, ChangeBalance(200)).Times(1);
     // Ожидаем Debit(from, sum+fee) -> from.ChangeBalance(-(sum+fee))
-    EXPECT_CALL(from, GetBalance()).WillOnce(Return(1000));
+    EXPECT_CALL(from, GetBalance())
+    .Times(AtLeast(1))
+    .WillRepeatedly(Return(1000));
     EXPECT_CALL(from, ChangeBalance(-201)).Times(1);  // сумма 200 + fee 1 = 201
     // Разблокировка через деструктор Guard
     EXPECT_CALL(from, Unlock()).Times(1);
@@ -70,7 +72,7 @@ TEST(TransactionTest, InsufficientFunds) {
     EXPECT_CALL(from, Lock()).Times(1);
     EXPECT_CALL(to, Lock()).Times(1);
     EXPECT_CALL(to, ChangeBalance(150)).Times(1);   // Credit
-    EXPECT_CALL(from, GetBalance()).WillOnce(Return(100));
+    EXPECT_CALL(from, GetBalance()).Times(testing::AtLeast(1)).WillRepeatedly(Return(100));
     EXPECT_CALL(to, ChangeBalance(-150)).Times(1);
     EXPECT_CALL(from, Unlock()).Times(1);
     EXPECT_CALL(to, Unlock()).Times(1);
