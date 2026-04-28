@@ -41,4 +41,4 @@ jobs:
         uses: coverallsapp/github-action@v2
         with:
           file: _build/coverage.xml
-          github-token: zXEE4h7x4nOKrgunhP3snjm140BLxsT7aoJb
+          repo-token: zXEE4h7x4nOKrgunhP3snjm140BLxsT7aoJb
