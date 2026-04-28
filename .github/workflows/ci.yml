@@ -1,58 +1,25 @@
-name: C++ CI
+name: CI
 
 on:
   push:
-    branches: [ master ]
+    branches: [ master, main ]
   pull_request:
-    branches: [ master ]
+    branches: [ master, main ]
 
 jobs:
-  build:
-    runs-on: ${{ matrix.os }}
-
-    strategy:
-      matrix:
-        os: [ubuntu-latest, windows-latest]
-        compiler: [gcc, clang]
-
-        include:
-          - os: ubuntu-latest
-            compiler: gcc
-            cc: gcc
-            cxx: g++
-
-          - os: ubuntu-latest
-            compiler: clang
-            cc: clang
-            cxx: clang++
-
-          - os: windows-latest
-            compiler: gcc
-            cc: gcc
-            cxx: g++
-
-          - os: windows-latest
-            compiler: clang
-            cc: clang
-            cxx: clang++
-
+  build-and-test:
+    runs-on: ubuntu-latest
+    
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v3
-
-    - name: Install dependencies (Ubuntu)
-      if: matrix.os == 'ubuntu-latest'
-      run: |
-        sudo apt update
-        sudo apt install -y build-essential cmake clang
-
-    - name: Set compiler
-      run: |
-        echo "CC=${{ matrix.cc }}" >> $GITHUB_ENV
-        echo "CXX=${{ matrix.cxx }}" >> $GITHUB_ENV
-
+    - uses: actions/checkout@v4
+      with:
+        submodules: recursive
+    
     - name: Configure CMake
-      run: cmake -S . -B build
-
+      run: cmake -B _build -DBUILD_TESTS=ON
+    
     - name: Build
-      run: cmake --build build --config Release
+      run: cmake --build _build
+    
+    - name: Run tests
+      run: cmake --build _build --target test -- ARGS=--verbose
