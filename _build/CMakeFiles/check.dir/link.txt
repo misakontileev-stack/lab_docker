@@ -1,1 +1,0 @@
-/usr/bin/c++ -w CMakeFiles/check.dir/tests/test1.cpp.o -o check  third-party/gtest/googlemock/gtest/libgtest_main.a third-party/gtest/googlemock/gtest/libgtest.a -lpthread 
