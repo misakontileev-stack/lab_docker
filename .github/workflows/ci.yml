@@ -2,25 +2,25 @@ name: CI
 
 on:
   push:
-    branches: [ master, main ]
+    branches: [ master]
   pull_request:
-    branches: [ master, main ]
+    branches: [ master]
 
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
-    
+
     steps:
     - uses: actions/checkout@v4
-    
+
     - name: Install system gtest
       run: sudo apt-get install -y libgtest-dev
-    
+
     - name: Configure CMake
       run: cmake -B _build -DBUILD_TESTS=ON -DCMAKE_CXX_FLAGS="-w"
-    
+
     - name: Build
       run: cmake --build _build
-    
+
     - name: Run tests
       run: cmake --build _build --target test -- ARGS=--verbose
