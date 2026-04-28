@@ -12,11 +12,12 @@ jobs:
     
     steps:
     - uses: actions/checkout@v4
-      with:
-        submodules: recursive
+    
+    - name: Install system gtest
+      run: sudo apt-get install -y libgtest-dev
     
     - name: Configure CMake
-      run: cmake -B _build -DBUILD_TESTS=ON
+      run: cmake -B _build -DBUILD_TESTS=ON -DCMAKE_CXX_FLAGS="-w"
     
     - name: Build
       run: cmake --build _build
