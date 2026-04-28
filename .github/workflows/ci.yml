@@ -2,25 +2,41 @@ name: CI
 
 on:
   push:
-    branches: [ master]
+    branches: [ master, main ]
   pull_request:
-    branches: [ master]
+    branches: [ master, main ]
 
 jobs:
-  build-and-test:
+  build:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-    - name: Install system gtest
-      run: sudo apt-get install -y libgtest-dev
+      - name: Install system dependencies
+        run: sudo apt-get update && sudo apt-get install -y lcov libgtest-dev libgmock-dev
 
-    - name: Configure CMake
-      run: cmake -B _build -DBUILD_TESTS=ON -DCMAKE_CXX_FLAGS="-w"
+      - name: Configure CMake with coverage flags
+        run: cmake -B _build -DBUILD_TESTS=ON -DCMAKE_CXX_FLAGS="--coverage -w"
 
-    - name: Build
-      run: cmake --build _build
+      - name: Build
+        run: cmake --build _build
 
-    - name: Run tests
-      run: cmake --build _build --target test -- ARGS=--verbose
+      - name: Run tests
+        working-directory: _build
+        run: ctest --verbose
+
+      - name: Collect coverage info
+        working-directory: _build
+        run: |
+          lcov --capture --directory . --output-file coverage.info
+          lcov --remove coverage.info '/usr/*' '*/third-party/*' '*/tests/*' '*/mocks/*' --output-file coverage.info
+          lcov --list coverage.info   # посмотреть процент покрытия
+
+      - name: Upload coverage to Coveralls
+        uses: coverallsapp/github-action@v2
+        with:
+          file: _build/coverage.info
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          flag-name: unit-tests
+          parallel: false
