@@ -1,789 +1,249 @@
-## Laboratory work VI
+## Домашнее задание
 
-Данная лабораторная работа посвещена изучению средств пакетирования на примере **CPack**
+В репозитории приведен код web-приложения, которое сохраняет в БД введенную информацию о задаче - ее имя.
 
-```sh
-$ open https://cmake.org/Wiki/CMake:CPackPackageGenerators
-```
+## Часть I. Docker
 
-## Tasks
+1. Добавьте в код Dockerfile, который позволит запустить web-приложение с исходным кодом в каталоге app/ через docker.
 
-- [ ] 1. Создать публичный репозиторий с названием **lab06** на сервисе **GitHub**
-- [ ] 2. Выполнить инструкцию учебного материала
-- [ ] 3. Ознакомиться со ссылками учебного материала
-- [ ] 4. Составить отчет и отправить ссылку личным сообщением в **Slack**
-
-## Tutorial
+Клонируем исходный репозиторий с заданием:
 
 ```sh
-$ export GITHUB_USERNAME=<имя_пользователя>
-
-$ export GITHUB_EMAIL=<адрес_почтового_ящика>
-
-$ alias edit=<nano|vi|vim|subl>
-
-$ alias gsed=sed # for *-nix system
+$ git clone https://github.com/tp-lessons/lab_docker.git
 ```
+
+```
+Клонирование в «lab_docker»...
+remote: Enumerating objects: 16, done.
+remote: Counting objects: 100% (16/16), done.
+remote: Compressing objects: 100% (12/12), done.
+remote: Total 16 (delta 1), reused 13 (delta 1), pack-reused 0 (from 0)
+Получение объектов: 100% (16/16), 5.01 КиБ | 5.01 МиБ/с, готово.
+Определение изменений: 100% (1/1), готово.
+```
+
+Перемещаемся в папку app и создаем здесь Dockerfile:
 
 ```sh
-$ cd ${GITHUB_USERNAME}/workspace
-
-$ pushd .
-
-$ source scripts/activate
+$ nano Dockerfile
 ```
+
+Здесь будет такой код:
 
 ```sh
-$ git clone https://github.com/misakontileev-stack/lab5.git projects/lab06
+FROM python:3.9-slim
+
+WORKDIR /app
+
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+COPY . .
+
+EXPOSE 5000
+
+CMD ["python", "app.py"]
 ```
+
+Собираем контейнер:
 
 ```sh
-Клонирование в «projects/lab06»...
-remote: Enumerating objects: 369, done.
-remote: Counting objects: 100% (369/369), done.
-remote: Compressing objects: 100% (181/181), done.
-remote: Total 369 (delta 135), reused 359 (delta 125), pack-reused 0 (from 0)
-Получение объектов: 100% (369/369), 1.52 МиБ | 5.12 МиБ/с, готово.
-Определение изменений: 100% (135/135), готово.
+$ docker build -t my-flask-app .
 ```
 
-```
-$ cd projects/lab06
+Вывод:
 
-$ git remote remove origin
-
-$ git remote add origin https://github.com/${GITHUB_USERNAME}/lab06
 ```
+[+] Building 53.7s (10/10) FINISHED                                                                      docker:default
+ => [internal] load build definition from Dockerfile                                                               0.0s
+ => => transferring dockerfile: 199B                                                                               0.0s
+ => [internal] load metadata for docker.io/library/python:3.9-slim                                                 9.3s
+ => [internal] load .dockerignore                                                                                  0.0s
+ => => transferring context: 2B                                                                                    0.0s
+ => [internal] load build context                                                                                  0.0s
+ => => transferring context: 1.91kB                                                                                0.0s
+ => [1/5] FROM docker.io/library/python:3.9-slim@sha256:2d97f6910b16bd338d3060f261f53f144965f755599aab1acda1e13cf  0.0s
+ => => resolve docker.io/library/python:3.9-slim@sha256:2d97f6910b16bd338d3060f261f53f144965f755599aab1acda1e13cf  0.0s
+ => CACHED [2/5] WORKDIR /app                                                                                      0.0s
+ => [3/5] COPY requirements.txt .                                                                                  0.0s
+ => [4/5] RUN pip install --no-cache-dir -r requirements.txt                                                      40.7s
+ => [5/5] COPY . .                                                                                                 0.0s 
+ => exporting to image                                                                                             3.6s 
+ => => exporting layers                                                                                            3.0s 
+ => => exporting manifest sha256:eb5b356c545ef6fddcf9e606e1318b9d1e932eba7c3ea83ef05d5045b7b4eb33                  0.0s 
+ => => exporting config sha256:8a7c0818c898cc5017f014700249aa302c15ddcc85e83100d66a23d0ddc6e9d0                    0.0s 
+ => => exporting attestation manifest sha256:bb6050345701a5f0f7e693f32a0f810d18a1770f86e165d5271fd1025debd0c0      0.0s 
+ => => exporting manifest list sha256:14e836808ac8c8797736dfbb43f30448c47fb355a7a6dfa73b7e675897ae62d0             0.0s
+ => => naming to docker.io/library/my-flask-app:latest                                                             0.0s
+ => => unpacking to docker.io/library/my-flask-app:latest
+```
+
+2. Выполните запуск контейнера с этим приложением.
+
+Запускаем его:
 
 ```sh
-$ gsed -i '/project(print)/a\
-
-set(PRINT_VERSION_STRING "v\${PRINT_VERSION}")
-
-' CMakeLists.txt
-
-$ gsed -i '/project(print)/a\
-
-set(PRINT_VERSION\
-
-  \${PRINT_VERSION_MAJOR}.\${PRINT_VERSION_MINOR}.\${PRINT_VERSION_PATCH}.\${PRINT_VERSION_TWEAK})
-
-' CMakeLists.txt
-
-$ gsed -i '/project(print)/a\
-
-set(PRINT_VERSION_TWEAK 0)
-
-' CMakeLists.txt
-
-$ gsed -i '/project(print)/a\
-
-set(PRINT_VERSION_PATCH 0)
-
-' CMakeLists.txt
-
-$ gsed -i '/project(print)/a\
-
-set(PRINT_VERSION_MINOR 1)
-
-' CMakeLists.txt
-
-$ gsed -i '/project(print)/a\
-
-set(PRINT_VERSION_MAJOR 0)
-
-' CMakeLists.txt
-
-$ git diff
-
+$ docker run -d --name my-running-app -p 5000:5000 my-flask-app
 ```
 
+Вывод (его id):
+
 ```sh
-$ touch DESCRIPTION && nano DESCRIPTION
+c89b1ae42ad15e4c765f858849e5940e0bf3a97b6794e48154f193789ef53ccb
 ```
 
-Вставляем такой текст:
+Проверяем, что он запустился:
 
 ```sh
-Lab06 project: example of CPack usage.
+$ docker ps
 ```
 
+Вывод:
+
 ```sh
-$ touch ChangeLog.md
+CONTAINER ID   IMAGE          COMMAND                  CREATED              STATUS                    PORTS                                                    NAMES
+c89b1ae42ad1   my-flask-app   "python app.py"          About a minute ago   Up About a minute         0.0.0.0:5000->5000/tcp, [::]:5000->5000/tcp              my-running-app
+```
 
-$ export DATE="`LANG=en_US date +'%a %b %d %Y'`"
+3. Скопируйте из консоли в каталог /home/ контейнера файл README.md.
 
-$ cat > ChangeLog.md <<EOF
-
-* ${DATE} ${GITHUB_USERNAME} <${GITHUB_EMAIL}> 0.1.0.0
-
-- Initial RPM release
-
-EOF
+```sh
+$ echo "Это пример README" > README.md
 ```
 
 ```sh
-$ cat > CPackConfig.cmake <<EOF
+docker cp README.md my-running-app:/home/
+```
 
-include(InstallRequiredSystemLibraries)
+Вывод:
 
-EOF
+```sh
+Successfully copied 27B (transferred 2.05kB) to my-running-app:/home/
+```
+
+4. Подключитесь к терминалу контейнера с приложением в интерактивном режиме. Проверьте, что скопированный файл находится в нужном каталоге.
+
+```sh
+docker exec -it my-running-app bash
 ```
 
 ```sh
-$ cat >> CPackConfig.cmake <<EOF
+root@c89b1ae42ad1:/app# ls /home/
+README.md
+```
 
-set(CPACK_PACKAGE_CONTACT ${GITHUB_EMAIL})
+5. Выйдите из интерактивного режима.
 
-set(CPACK_PACKAGE_VERSION_MAJOR \${PRINT_VERSION_MAJOR})
+```sh
+root@c89b1ae42ad1:/app# exit
+exit
+```
 
-set(CPACK_PACKAGE_VERSION_MINOR \${PRINT_VERSION_MINOR})
+6. Остановите контейнер с приложением.
 
-set(CPACK_PACKAGE_VERSION_PATCH \${PRINT_VERSION_PATCH})
+```sh
+$ docker stop my-running-app
 
-set(CPACK_PACKAGE_VERSION_TWEAK \${PRINT_VERSION_TWEAK})
+$ docker rm my-running-app
+```
 
-set(CPACK_PACKAGE_VERSION \${PRINT_VERSION})
+## Часть II. Docker compose
+1. Создайте файл docker-compose.yml таким образом, чтобы совместно с описанным в части 1 контейнером работала бы база данных mysql. Файл инициализации БД в каталоге db/init.sql. Также пропишите порт подключения к приложению. Например 5000.
 
-set(CPACK_PACKAGE_DESCRIPTION_FILE \${CMAKE_CURRENT_SOURCE_DIR}/DESCRIPTION)
+```sh
+$ cat > docker-compose.yml <<'EOF'
+services:
+  web:
+    build: ./app
+    ports:
+      - "5000:5000"
+    environment:
+      DB_HOST: db
+      DB_USER: user
+      DB_PASS: example
+      DB_NAME: mydb
+    depends_on:
+      db:
+        condition: service_healthy
 
-set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "static C++ library for printing")
+  db:
+    image: mysql:8.0
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: mydb
+      MYSQL_USER: user
+      MYSQL_PASSWORD: example
+    ports:
+      - "3306:3306"
+    volumes:
+      - db_data:/var/lib/mysql
+      - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-prootpassword"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
-EOF
+volumes:
+  db_data:
+```
+
+2. Запустите связку web-приложение - БД.
+
+```sh
+$ docker compose up --build
+```
+
+3. Проверьте подключение к приложению через браузер. Сделайте снимок экрана.
+
+Появились проблемы с кодировкой, решил проблему путем перевода из 1252 в UTF-8.
+
+```sh
+$ docker exec -it lab_docker-web-1 bash -c "cat > /app/models.py <<'EOF'
+import os
+import pymysql
+
+class ItemModel:
+    def __init__(self):
+        self.config = {
+            'host': os.getenv('DB_HOST'),
+            'user': os.getenv('DB_USER'),
+            'password': os.getenv('DB_PASS'),
+            'database': os.getenv('DB_NAME'),
+            'charset': 'utf8mb4',
+            'cursorclass': pymysql.cursors.DictCursor
+        }
+
+    def get_all_items(self):
+        try:
+            conn = pymysql.connect(**self.config)
+            cursor = conn.cursor()
+            cursor.execute('SELECT name FROM items')
+            items = cursor.fetchall()
+            cursor.close()
+            conn.close()
+            fixed = []
+            for item in items:
+                name = item['name']
+                if isinstance(name, str):
+                    try:
+                        # Перекодировка из cp1252 в utf-8
+                        name = name.encode('cp1252').decode('utf-8')
+                    except (UnicodeEncodeError, UnicodeDecodeError):
+                        pass
+                fixed.append({'name': name})
+            return fixed
+        except Exception as e:
+            print(f'Error: {e}')
+            return []
+EOF"
 ```
 
 ```sh
-$ cat >> CPackConfig.cmake <<EOF
-
-set(CPACK_RESOURCE_FILE_LICENSE \${CMAKE_CURRENT_SOURCE_DIR}/LICENSE)
-
-set(CPACK_RESOURCE_FILE_README \${CMAKE_CURRENT_SOURCE_DIR}/README.md)
-
-EOF
+$ docker compose restart web
 ```
 
-```sh
-$ cat >> CPackConfig.cmake <<EOF
+4. Проверьте работу приложения через браузер.
 
-set(CPACK_RPM_PACKAGE_NAME "print-devel")
-
-set(CPACK_RPM_PACKAGE_LICENSE "MIT")
-
-set(CPACK_RPM_PACKAGE_GROUP "print")
-
-set(CPACK_RPM_CHANGELOG_FILE \${CMAKE_CURRENT_SOURCE_DIR}/ChangeLog.md)
-
-set(CPACK_RPM_PACKAGE_RELEASE 1)
-
-EOF
-```
-
-```sh
-$ cat >> CPackConfig.cmake <<EOF
-
-set(CPACK_DEBIAN_PACKAGE_NAME "libprint-dev")
-
-set(CPACK_DEBIAN_PACKAGE_PREDEPENDS "cmake >= 3.0")
-
-set(CPACK_DEBIAN_PACKAGE_RELEASE 1)
-
-EOF
-```
-
-```sh
-$ cat >> CPackConfig.cmake <<EOF
-
-include(CPack)
-
-EOF
-```
-
-```sh
-$ cat >> CMakeLists.txt <<EOF
-
-include(CPackConfig.cmake)
-
-EOF
-```
-
-```sh
-$ gsed -i 's/lab05/lab06/g' README.md
-```
-
-```sh
-$ git add .
-
-$ git commit -m"added cpack config"
-```
-
-```sh
-[master e2eceaf] added cpack config
- 6 files changed, 167 insertions(+), 800 deletions(-)
- create mode 100644 .README.md.swp
- create mode 100644 CPackConfig.cmake
- create mode 100644 ChangeLog.md
- create mode 100644 DESCRIPTION
-```
-
-```sh
-$ git tag v0.1.0.0
-
-$ git push origin master --tags
-```
-
-```sh
-Username for 'https://github.com': misakontileev
-Password for 'https://misakontileev@github.com': 
-Перечисление объектов: 377, готово.
-Подсчет объектов: 100% (377/377), готово.
-При сжатии изменений используется до 4 потоков
-Сжатие объектов: 100% (178/178), готово.
-Запись объектов: 100% (377/377), 1.53 МиБ | 3.18 МиБ/с, готово.
-Всего 377 (изменений 137), повторно использовано 368 (изменений 135), повторно использовано пакетов 0
-remote: Resolving deltas: 100% (137/137), done.
-To https://github.com/misakontileev-stack/lab06.git
- * [new branch]      master -> master
- * [new tag]         v0.1.0.0 -> v0.1.0.0
-```
-
-```sh
-$ mkdir -p .github/workflows
-
-$ nano .github/workflows/ci.yml
-```
-
-```sh
-name: CI
-
-on: [push, pull_request]  # Запускать при пуше и создании pull request
-
-jobs:
-  build:
-    runs-on: ubuntu-latest  # Используем последнюю версию Ubuntu
-
-    steps:
-    - uses: actions/checkout@v4  # "Выкачиваем" код из репозитория
-
-    - name: Configure
-      run: cmake -B build -DCMAKE_BUILD_TYPE=Release
-
-    - name: Build
-      run: cmake --build build --config Release
-
-    - name: Package with CPack
-      run: cpack --config build/CPackConfig.cmake -G DEB  # Упаковываем в .deb
-
-    - name: Upload Artifact
-      uses: actions/upload-artifact@v4  # Сохраняем готовый пакет как артефакт сборки
-      with:
-        name: my-project-package
-        path: build/*.deb
-```
-
-Создаем пустой файл
-
-```sh
-$ nano LICENSE
-```
-
-```sh
-$ cmake -H. -B_build
-```
-
-```sh
-CMake Deprecation Warning at formatter_lib/CMakeLists.txt:1 (cmake_minimum_required):
-  Compatibility with CMake < 3.5 will be removed from a future version of
-  CMake.
-
-  Update the VERSION argument <min> value or use a ...<max> suffix to tell
-  CMake that the project does not need compatibility with older versions.
-
-
-CMake Deprecation Warning at formatter_ex/CMakeLists.txt:1 (cmake_minimum_required):
-  Compatibility with CMake < 3.5 will be removed from a future version of
-  CMake.
-
-  Update the VERSION argument <min> value or use a ...<max> suffix to tell
-  CMake that the project does not need compatibility with older versions.
-
-
-CMake Deprecation Warning at solver_lib/CMakeLists.txt:1 (cmake_minimum_required):
-  Compatibility with CMake < 3.5 will be removed from a future version of
-  CMake.
-
-  Update the VERSION argument <min> value or use a ...<max> suffix to tell
-  CMake that the project does not need compatibility with older versions.
-
-
-CMake Deprecation Warning at hello_world/CMakeLists.txt:1 (cmake_minimum_required):
-  Compatibility with CMake < 3.5 will be removed from a future version of
-  CMake.
-
-  Update the VERSION argument <min> value or use a ...<max> suffix to tell
-  CMake that the project does not need compatibility with older versions.
-
-
-CMake Deprecation Warning at solver/CMakeLists.txt:1 (cmake_minimum_required):
-  Compatibility with CMake < 3.5 will be removed from a future version of
-  CMake.
-
-  Update the VERSION argument <min> value or use a ...<max> suffix to tell
-  CMake that the project does not need compatibility with older versions.
-
-
--- Configuring done (0.0s)
--- Generating done (0.0s)
--- Build files have been written to: /home/misha/misakontileev/workspace/projects/lab06/_build
-```
-
-
-```sh
-$ cmake --build _build
-```
-
-```sh
-[  7%] Building CXX object formatter_lib/CMakeFiles/formatter.dir/formatter.cpp.o
-[ 15%] Linking CXX static library libformatter.a
-[ 15%] Built target formatter
-[ 23%] Building CXX object formatter_ex/CMakeFiles/formatter_ex.dir/formatter_ex.cpp.o
-[ 30%] Linking CXX static library libformatter_ex.a
-[ 30%] Built target formatter_ex
-[ 38%] Building CXX object solver_lib/CMakeFiles/solver_lib.dir/solver.cpp.o
-[ 46%] Linking CXX static library libsolver_lib.a
-[ 46%] Built target solver_lib
-[ 53%] Building CXX object hello_world/CMakeFiles/hello_world.dir/hello_world.cpp.o
-[ 61%] Linking CXX executable hello_world
-[ 61%] Built target hello_world
-[ 69%] Building CXX object solver/CMakeFiles/solver.dir/equation.cpp.o
-[ 76%] Linking CXX executable solver
-[ 76%] Built target solver
-[ 84%] Building CXX object banking/CMakeFiles/banking.dir/Account.cpp.o
-[ 92%] Building CXX object banking/CMakeFiles/banking.dir/Transaction.cpp.o
-[100%] Linking CXX static library libbanking.a
-[100%] Built target banking
-```
-
-```sh
-$ cd _build
-
-$ cpack -G "TGZ"
-```
-
-```sh
-CPack: Create package using TGZ
-CPack: Install projects
-CPack: - Run preinstall target for: lab05
-CPack: - Install project: lab05 []
-CPack: Create package
-CPack: - package: /home/misha/misakontileev/workspace/projects/lab06/_build/lab05-0.1.1-Linux.tar.gz generated.
-```
-
-```sh
-$ cd ..
-```
-
-```sh
-$ cmake -H. -B_build -DCPACK_GENERATOR="TGZ"
-```
-
-```sh
-CMake Deprecation Warning at formatter_lib/CMakeLists.txt:1 (cmake_minimum_required):
-  Compatibility with CMake < 3.5 will be removed from a future version of
-  CMake.
-
-  Update the VERSION argument <min> value or use a ...<max> suffix to tell
-  CMake that the project does not need compatibility with older versions.
-
-
-CMake Deprecation Warning at formatter_ex/CMakeLists.txt:1 (cmake_minimum_required):
-  Compatibility with CMake < 3.5 will be removed from a future version of
-  CMake.
-
-  Update the VERSION argument <min> value or use a ...<max> suffix to tell
-  CMake that the project does not need compatibility with older versions.
-
-
-CMake Deprecation Warning at solver_lib/CMakeLists.txt:1 (cmake_minimum_required):
-  Compatibility with CMake < 3.5 will be removed from a future version of
-  CMake.
-
-  Update the VERSION argument <min> value or use a ...<max> suffix to tell
-  CMake that the project does not need compatibility with older versions.
-
-
-CMake Deprecation Warning at hello_world/CMakeLists.txt:1 (cmake_minimum_required):
-  Compatibility with CMake < 3.5 will be removed from a future version of
-  CMake.
-
-  Update the VERSION argument <min> value or use a ...<max> suffix to tell
-  CMake that the project does not need compatibility with older versions.
-
-
-CMake Deprecation Warning at solver/CMakeLists.txt:1 (cmake_minimum_required):
-  Compatibility with CMake < 3.5 will be removed from a future version of
-  CMake.
-
-  Update the VERSION argument <min> value or use a ...<max> suffix to tell
-  CMake that the project does not need compatibility with older versions.
-
-
--- Configuring done (0.0s)
--- Generating done (0.0s)
--- Build files have been written to: /home/misha/misakontileev/workspace/projects/lab06/_build
-```
-
-```sh
-$ cmake --build _build --target package
-```
-
-```sh
-[ 15%] Built target formatter
-[ 30%] Built target formatter_ex
-[ 46%] Built target solver_lib
-[ 61%] Built target hello_world
-[ 76%] Built target solver
-[100%] Built target banking
-Run CPack packaging tool...
-CPack: Create package using TGZ
-CPack: Install projects
-CPack: - Run preinstall target for: lab05
-CPack: - Install project: lab05 []
-CPack: Create package
-CPack: - package: /home/misha/misakontileev/workspace/projects/lab06/_build/lab05-0.1.1-Linux.tar.gz generated.
-```
-
-```sh
-$ mkdir artifacts
-
-$ mv _build/*.tar.gz artifacts
-
-$ tree artifacts
-```
-
-```sh
-artifacts
-└── lab05-0.1.1-Linux.tar.gz
-
-1 directory, 1 file
-```
-
-## Report
-
-```sh
-$ popd
-
-$ export LAB_NUMBER=06
-
-$ git clone https://github.com/tp-labs/lab${LAB_NUMBER} tasks/lab${LAB_NUMBER}
-
-$ mkdir reports/lab${LAB_NUMBER}
-
-$ cp tasks/lab${LAB_NUMBER}/README.md reports/lab${LAB_NUMBER}/REPORT.md
-
-$ cd reports/lab${LAB_NUMBER}
-
-$ edit REPORT.md
-
-$ gist REPORT.md
-```
-
-## Homework
-
-После того, как вы настроили взаимодействие с системой непрерывной интеграции,</br>
-обеспечив автоматическую сборку и тестирование ваших изменений, стоит задуматься</br>
-о создание пакетов для измениний, которые помечаются тэгами (см. вкладку [releases](https://github.com/tp-labs/lab06/releases)).</br>
-Пакет должен содержать приложение _solver_ из [предыдущего задания](https://github.com/tp-labs/lab03#задание-1)
-Таким образом, каждый новый релиз будет состоять из следующих компонентов:
-- архивы с файлами исходного кода (`.tar.gz`, `.zip`)
-- пакеты с бинарным файлом _solver_ (`.deb`, `.rpm`, `.msi`, `.dmg`)
-
-В качестве подсказки:
-```sh
-$ cat .travis.yml
-os: osx
-script:
-...
-- cpack -G DragNDrop # dmg
-
-$ cat .travis.yml
-os: linux
-script:
-...
-- cpack -G DEB # deb
-
-$ cat .travis.yml
-os: linux
-addons:
-  apt:
-    packages:
-    - rpm
-script:
-...
-- cpack -G RPM # rpm
-
-$ cat appveyor.yml
-platform:
-- x86
-- x64
-build_script:
-...
-- cpack -G WIX # msi
-```
-
-Для этого нужно добавить ветвление в конфигурационные файлы для **CI** со следующей логикой:</br>
-если **commit** помечен тэгом, то необходимо собрать пакеты (`DEB, RPM, WIX, DragNDrop, ...`) </br>
-и разместить их на сервисе **GitHub**. (см. пример для [Travi CI](https://docs.travis-ci.com/user/deployment/releases))</br>
-
-
-Нужно в каждом подкорневом CMakeLists.txt поменять версию CMake на 3.10, чтобы проект собирался на MacOS.
-
-Далее меняем ci.yml, там будет такой код:
-
-```sh
-name: Create Release Packages
-
-on:
-  push:
-    tags:
-      - 'v*'
-
-jobs:
-  build_linux:
-    name: Build Linux packages (deb, rpm)
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Install RPM build tools
-        run: sudo apt-get update && sudo apt-get install -y rpm
-
-      - name: Configure CMake
-        run: cmake -B build -DCMAKE_BUILD_TYPE=Release
-
-      - name: Build
-        run: cmake --build build --config Release
-
-      - name: Package DEB
-        run: cd build && cpack -G DEB -C Release
-
-      - name: Package RPM
-        run: cd build && cpack -G RPM -C Release
-
-      - name: Upload Linux packages
-        uses: actions/upload-artifact@v4
-        with:
-          name: linux-packages
-          path: |
-            build/*.deb
-            build/*.rpm
-  build_windows:
-    name: Build Windows package (msi)
-    runs-on: windows-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Configure CMake
-        run: cmake -B build -DCMAKE_BUILD_TYPE=Release
-
-      - name: Build
-        run: cmake --build build --config Release
-
-      - name: Package MSI (WIX)
-        run: cd build && cpack -G WIX -C Release
-
-      - name: Upload artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: windows-package
-          path: build/*.msi
-
-  build_macos:
-    name: Build macOS package (dmg)
-    runs-on: macos-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Configure CMake
-        run: cmake -B build -DCMAKE_BUILD_TYPE=Release
-
-      - name: Build
-        run: cmake --build build --config Release
-
-      - name: Package DMG (DragNDrop)
-        run: cd build && cpack -G DragNDrop -C Release
-
-      - name: Upload artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: macos-package
-          path: build/*.dmg
-   create_release:
-    name: Create GitHub Release and upload assets
-    needs: [build_linux, build_windows, build_macos]
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-    steps:
-      - name: Download all artifacts
-        uses: actions/download-artifact@v4
-        with:
-          path: artifacts
-
-      - name: List files
-        run: ls -R artifacts
-
-      - name: Create Release
-        uses: softprops/action-gh-release@v2
-        with:
-          files: |
-            artifacts/linux-packages/*.deb
-            artifacts/linux-packages/*.rpm
-            artifacts/windows-package/*.msi
-            artifacts/macos-package/*.dmg
-          draft: false
-          prerelease: false
-          generate_release_notes: true
-```
-
-Вставляем такой текст в LICENSE:
-
-```sh
-MIT License
-
-Copyright (c) 2026 misakontileev
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
-```
-
-И создаем LICENSE.rtf для WIX:
-
-```sh
-{\rtf1\ansi\deff0 {\fonttbl {\f0 Times New Roman;}}\f0\fs24
-\b MIT License\b0\line
-\line
-Copyright (c) 2025 misakontileev\line
-\line
-Permission is hereby granted, free of charge, to any person obtaining a copy\line
-of this software and associated documentation files (the "Software"), to deal\line
-in the Software without restriction, including without limitation the rights\line
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell\line
-copies of the Software, and to permit persons to whom the Software is\line
-furnished to do so, subject to the following conditions:\line
-\line
-The above copyright notice and this permission notice shall be included in all\line
-copies or substantial portions of the Software.\line
-\line
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\line
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,\line
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE\line
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER\line
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,\line
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE\line
-SOFTWARE.\line
-}
-```
-
-И также нужно поменять одну строчку в CPackConfig.cmake, теперь он такой:
-
-```sh
-include(InstallRequiredSystemLibraries)
-set(CPACK_PACKAGE_CONTACT "misakontileev@gmail.com")
-set(CPACK_PACKAGE_VERSION_MAJOR ${PRINT_VERSION_MAJOR})
-set(CPACK_PACKAGE_VERSION_MINOR ${PRINT_VERSION_MINOR})
-set(CPACK_PACKAGE_VERSION_PATCH ${PRINT_VERSION_PATCH})
-set(CPACK_PACKAGE_VERSION_TWEAK ${PRINT_VERSION_TWEAK})
-set(CPACK_PACKAGE_VERSION ${PRINT_VERSION})
-set(CPACK_PACKAGE_DESCRIPTION_FILE ${CMAKE_CURRENT_SOURCE_DIR}/DESCRIPTION)
-set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Quadratic equation solver")
-
-set(CPACK_RESOURCE_FILE_LICENSE ${CMAKE_CURRENT_SOURCE_DIR}/LICENSE.rtf)
-set(CPACK_RESOURCE_FILE_README ${CMAKE_CURRENT_SOURCE_DIR}/README.md)
-
-# Для RPM
-set(CPACK_RPM_PACKAGE_NAME "solver")
-set(CPACK_RPM_PACKAGE_LICENSE "MIT")
-set(CPACK_RPM_PACKAGE_GROUP "Development/Tools")
-set(CPACK_RPM_CHANGELOG_FILE ${CMAKE_CURRENT_SOURCE_DIR}/ChangeLog.md)
-set(CPACK_RPM_PACKAGE_RELEASE 1)
-
-# Для DEB
-set(CPACK_DEBIAN_PACKAGE_NAME "solver")
-set(CPACK_DEBIAN_PACKAGE_MAINTAINER ${CPACK_PACKAGE_CONTACT})
-set(CPACK_DEBIAN_PACKAGE_DESCRIPTION "Command-line quadratic equation solver")
-set(CPACK_DEBIAN_PACKAGE_RELEASE 1)
-
-# Для Windows (WIX) и macOS (dragndrop) – общие настройки
-set(CPACK_GENERATOR "ZIP;TGZ")   # базовые архивы, для конкретных платформ переопределим в CI
-
-include(CPack)
-```
-
-И загружаем все на GitHub:
-
-```sh
-$ git add .
-
-$ git commit -m "Update files"
-```
-
-```sh
-[master 9eaa3f5] Update files
- 4 files changed, 49 insertions(+), 10 deletions(-)
- create mode 100644 LICENSE.rtf
-```
-
-```sh
-$ git push origin master
-```
-
-```sh
-Username for 'https://github.com': misakontileev
-Password for 'https://misakontileev@github.com': 
-Перечисление объектов: 14, готово.
-Подсчет объектов: 100% (14/14), готово.
-При сжатии изменений используется до 4 потоков
-Сжатие объектов: 100% (6/6), готово.
-Запись объектов: 100% (8/8), 1.37 КиБ | 1.37 МиБ/с, готово.
-Всего 8 (изменений 4), повторно использовано 0 (изменений 0), повторно использовано пакетов 0
-remote: Resolving deltas: 100% (4/4), completed with 3 local objects.
-To https://github.com/misakontileev-stack/lab06.git
-   6a136ca..9eaa3f5  master -> master
-```
-
-И создаем тэг:
-
-```sh
-$ git tag v1.0.4
-```
-
-```sh
-$ git push origin v1.0.4
-```
-
-```sh
-Username for 'https://github.com': misakontileev
-Password for 'https://misakontileev@github.com': 
-Всего 0 (изменений 0), повторно использовано 0 (изменений 0), повторно использовано пакетов 0
-To https://github.com/misakontileev-stack/lab06.git
- * [new tag]         v1.0.4 -> v1.0.4
-```
-
-```
-Copyright (c) 2015-2021 The ISC Authors
-```
+По ссылке http://localhost:5000 все отображается корректно.
