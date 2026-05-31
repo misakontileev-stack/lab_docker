@@ -10,7 +10,7 @@ set(PRINT_VERSION "${PRINT_VERSION_MAJOR}.${PRINT_VERSION_MINOR}.${PRINT_VERSION
 set(PRINT_VERSION_STRING "solver ${PRINT_VERSION}")
 
 # Подключаем библиотеки форматирования (от которых зависит solver)
-add_subdirectory(formatter)
+add_subdirectory(formatter_lib)
 add_subdirectory(formatter_ex)
 
 # Подключаем solver_lib и сам solver
@@ -18,7 +18,7 @@ add_subdirectory(solver_lib)
 add_subdirectory(solver)
 
 # Установка целей (чтобы пакет содержал файлы)
-install(TARGETS solver_lib formatter_lib formatter_ex solver
+install(TARGETS solver_lib formatter formatter_ex solver
         RUNTIME DESTINATION bin
         LIBRARY DESTINATION lib
         ARCHIVE DESTINATION lib)
