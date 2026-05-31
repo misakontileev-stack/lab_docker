@@ -27,18 +27,13 @@ jobs:
       - name: Package RPM
         run: cd build && cpack -G RPM -C Release
 
-      - name: Upload artifacts
+      - name: Upload Linux packages
         uses: actions/upload-artifact@v4
         with:
           name: linux-packages
-          path: build/*.deb
-          if-no-files-found: error
-      - name: Upload artifacts (RPM)
-        uses: actions/upload-artifact@v4
-        with:
-          name: linux-packages
-          path: build/*.rpm
-
+          path: |
+            build/*.deb
+            build/*.rpm
   build_windows:
     name: Build Windows package (msi)
     runs-on: windows-latest
