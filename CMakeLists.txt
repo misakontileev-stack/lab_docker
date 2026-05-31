@@ -1,31 +1,23 @@
 cmake_minimum_required(VERSION 3.10)
-project(lab05)
+project(solver)
 
-include_directories(include banking /usr/include)
+# Версия проекта (используется в CPack)
+set(PRINT_VERSION_MAJOR 0)    # можно переименовать в SOLVER_VERSION_... но для совместимости с CPackConfig оставим как есть
+set(PRINT_VERSION_MINOR 1)
+set(PRINT_VERSION_PATCH 0)
+set(PRINT_VERSION_TWEAK 0)
+set(PRINT_VERSION "${PRINT_VERSION_MAJOR}.${PRINT_VERSION_MINOR}.${PRINT_VERSION_PATCH}.${PRINT_VERSION_TWEAK}")
+set(PRINT_VERSION_STRING "solver ${PRINT_VERSION}")
 
-add_subdirectory(formatter_lib)
-add_subdirectory(formatter_ex)
 add_subdirectory(solver_lib)
-add_subdirectory(hello_world)
 add_subdirectory(solver)
-add_subdirectory(banking)
 
-if(BUILD_TESTS)
-  enable_testing()
-  find_package(GTest REQUIRED)
-  include_directories(${GTEST_INCLUDE_DIRS})
+# Установка исполняемого файла и библиотеки (для пакета)
+install(TARGETS solver_lib solver
+        RUNTIME DESTINATION bin      # для solver.exe
+        LIBRARY DESTINATION lib      # для .so/.dylib
+        ARCHIVE DESTINATION lib)     # для .a
 
-  # Тест для print 
-  add_executable(check tests/test1.cpp)
-  target_link_libraries(check ${GTEST_LIBRARIES} gtest_main pthread)
-  add_test(NAME check COMMAND check)
+install(DIRECTORY include/ DESTINATION include)   # если у solver есть публичные заголовки
 
-  # Тесты для banking
-  add_executable(banking_tests
-      banking/tests/test_account.cpp
-      banking/tests/test_transaction.cpp
-  )
-  target_link_libraries(banking_tests banking gtest gtest_main gmock pthread)
-  add_test(NAME banking_tests COMMAND banking_tests)
-endif()
 include(CPackConfig.cmake)

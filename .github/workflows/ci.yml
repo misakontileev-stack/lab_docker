@@ -1,44 +1,109 @@
-name: CI
+name: Create Release Packages
 
-on: [push, pull_request]
+on:
+  push:
+    tags:
+      - 'v*'
 
 jobs:
-  build:
+  build_linux:
+    name: Build Linux packages (deb, rpm)
     runs-on: ubuntu-latest
-
     steps:
       - uses: actions/checkout@v4
-        with:
-          submodules: recursive
 
-      - name: Install dependencies
-        run: sudo apt-get update && sudo apt-get install -y cmake lcov gcovr libgtest-dev libgmock-dev
+      - name: Install RPM build tools
+        run: sudo apt-get update && sudo apt-get install -y rpm
 
-      - name: Configure CMake with coverage
-        run: cmake -B _build -DBUILD_TESTS=ON -DCMAKE_CXX_FLAGS="--coverage -O0 -g -w"
+      - name: Configure CMake
+        run: cmake -B build -DCMAKE_BUILD_TYPE=Release
 
       - name: Build
-        run: cmake --build _build
+        run: cmake --build build --config Release
 
-      - name: Run tests
-        working-directory: _build
-        run: ctest --verbose
+      - name: Package DEB
+        run: cd build && cpack -G DEB -C Release
 
-      - name: Install gcovr (if not already)
-        run: sudo apt-get install -y gcovr
+      - name: Package RPM
+        run: cd build && cpack -G RPM -C Release
 
-      - name: Collect coverage with gcovr
-        working-directory: _build
-        run: |
-          gcovr -r .. --gcov-ignore-errors=no_working_dir_found \
-            --filter '.*banking/.*' \
-            --exclude '.*tests.*' \
-            --exclude '.*mocks.*' \
-            --exclude '.*print.hpp' \
-            --xml coverage.xml
-
-      - name: Upload coverage to Coveralls
-        uses: coverallsapp/github-action@v2
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
         with:
-          file: _build/coverage.xml
-          repo-token: zXEE4h7x4nOKrgunhP3snjm140BLxsT7aoJb
+          name: linux-packages
+          path: build/*.deb
+          if-no-files-found: error
+      - name: Upload artifacts (RPM)
+        uses: actions/upload-artifact@v4
+        with:
+          name: linux-packages
+          path: build/*.rpm
+
+  build_windows:
+    name: Build Windows package (msi)
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure CMake
+        run: cmake -B build -DCMAKE_BUILD_TYPE=Release
+
+      - name: Build
+        run: cmake --build build --config Release
+
+      - name: Package MSI (WIX)
+        run: cd build && cpack -G WIX -C Release
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-package
+          path: build/*.msi
+
+  build_macos:
+    name: Build macOS package (dmg)
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure CMake
+        run: cmake -B build -DCMAKE_BUILD_TYPE=Release
+
+      - name: Build
+        run: cmake --build build --config Release
+
+      - name: Package DMG (DragNDrop)
+        run: cd build && cpack -G DragNDrop -C Release
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: macos-package
+          path: build/*.dmg
+
+  create_release:
+    name: Create GitHub Release and upload assets
+    needs: [build_linux, build_windows, build_macos]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: List files
+        run: ls -R artifacts
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            artifacts/linux-packages/*.deb
+            artifacts/linux-packages/*.rpm
+            artifacts/windows-package/*.msi
+            artifacts/macos-package/*.dmg
+          draft: false
+          prerelease: false
+          generate_release_notes: true
